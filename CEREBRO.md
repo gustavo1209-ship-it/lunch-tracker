@@ -37,6 +37,10 @@ Etapas: Na fila → Em preparo → Prontos → Entregues. Busca por identificaç
 Cada cartão representa um prato e sua quantidade dentro de um pedido, não uma porção individual. Etapas: Recebidos → Pré-preparo → Em produção → Finalização → Prontos.
 
 - Arrastar pela alça, botões de avanço/retorno e seletor acessível para teclado/touch.
+- Interface orientada à ação: cada cartão destaca “Agora, faça isto” e um botão principal de no mínimo 64 px. “Feito! Próxima atividade” conclui somente a primeira atividade pendente; a mudança de etapa exige um toque separado depois das atividades.
+- Checklists com áreas amplas de toque, prato/quantidade e observações em destaque. Abas por etapa permitem uma grade maior; Todas as etapas mantém o Kanban horizontal e o arraste.
+- Orientação no topo sugere concluir montagens, continuar preparos ou iniciar pedidos recebidos, conforme os pedidos do filtro de estação/busca. Dentro de cada etapa, os mais antigos aparecem primeiro. É uma regra simples de orientação, não um otimizador de capacidade.
+- Responsável, sequência completa e controles de correção ficam em “Detalhes e ajustes”. Cadastro de processos fica recolhido no fim da tela.
 - Filtros por estação, prato, identificação do pedido e responsável.
 - Checklist inicial de conferência, separação e organização; permite adicionar pré-atividades.
 - Campo de responsável por produção.

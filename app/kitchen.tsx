@@ -6,13 +6,14 @@ import { orderLabel, productionFor, type KitchenOrder, type Production } from '.
 
 type Dish = { id: number; name: string; minutes: number; station: string; processes?: string[] };
 const stages = ['Recebidos', 'Pré-preparo', 'Em produção', 'Finalização', 'Prontos'];
-const actions = ['Iniciar pré-preparo', 'Iniciar produção', 'Finalizar montagem', 'Marcar pronto'];
+const actions = ['Começar pré-preparo', 'Começar a cozinhar', 'Ir para montagem', 'Pronto para servir'];
 
 export default function Kitchen({ orders, dishes, now, onUpdate, onProcesses }: {
   orders: KitchenOrder[]; dishes: Dish[]; now: number;
   onUpdate: (orderId: number, itemIndex: number, production: Production) => void;
   onProcesses: (dishId: number, processes: string[]) => void;
 }) {
+  const [stageFilter, setStageFilter] = useState<number | null>(null);
   const [station, setStation] = useState('Todas');
   const [search, setSearch] = useState('');
   const [drafts, setDrafts] = useState<Record<string, string>>({});
@@ -23,6 +24,7 @@ export default function Kitchen({ orders, dishes, now, onUpdate, onProcesses }: 
   const active = orders.filter(order => order.status < 3);
   const tasks = active.flatMap(order => order.items.map((item, index) => ({ order, item, index, dish: dishes.find(d => d.id === item.dish)!, production: productionFor(item, order.status) })));
   const filtered = tasks.filter(t => (station === 'Todas' || t.dish.station === station) && `${orderLabel(t.order)} ${t.order.id} ${t.dish.name} ${t.production.owner}`.toLocaleLowerCase().includes(search.toLocaleLowerCase()));
+  filtered.sort((a,b)=>a.order.created-b.order.created);
   const portions = filtered.filter(t => t.production.stage < 4).reduce((sum, t) => sum + t.item.qty, 0);
   const changeStage = (order: KitchenOrder, index: number, production: Production, dish: Dish, stage: number) => {
     if (stage === production.stage) return;
@@ -33,21 +35,21 @@ export default function Kitchen({ orders, dishes, now, onUpdate, onProcesses }: 
     setMessage(`${dish.name} · ${orderLabel(order)}: ${stages[stage]}`);
   };
   return <div className="kitchen">
-    <div className="info"><ChefHat size={24}/><div><b>Antecipe o pré-preparo de cada produção</b><p>Separe ingredientes, organize a bancada e distribua responsáveis antes de iniciar o preparo. Cada cartão representa todas as porções de um prato no pedido. A mesa só fica pronta quando todos os pratos do pedido estiverem prontos.</p></div></div>
-    <details className="panel process-settings"><summary>Configurar processos de preparo por prato</summary><p>Uma etapa por linha, na ordem de execução. Novas produções usam esta sequência; produções já iniciadas preservam seus processos.</p><div className="process-editors">{dishes.map(d => <ProcessEditor key={d.id} dish={d} onSave={steps=>{onProcesses(d.id,steps);setMessage(`Processos de ${d.name} salvos.`)}}/>)}</div></details>
-    <p className="footnote">Arraste os cards pela alça ou use os botões e o seletor de etapa. Conclua os checklists para avançar.</p>
+    <div className="kitchen-command"><ChefHat size={34}/><div><span>O QUE FAZER AGORA</span><h2>{!filtered.length?'Nenhuma produção neste filtro':filtered.some(t=>t.production.stage===3)?'Finalize os pratos que já estão na montagem':filtered.some(t=>t.production.stage===2)?'Continue os preparos em andamento':filtered.some(t=>t.production.stage<2)?'Comece pelos pedidos mais antigos':'Confira os pedidos prontos para servir'}</h2><p>Faça a ação indicada no cartão e toque no botão grande para confirmar. Os pedidos mais antigos aparecem primeiro em cada etapa.</p></div></div>
     <p className="kitchen-feedback" role="status" aria-live="polite">{message}</p>
     <div className="toolbar kitchen-filters"><label>Estação<select value={station} onChange={e => setStation(e.target.value)}><option>Todas</option>{Array.from(new Set(dishes.map(d => d.station))).map(s => <option key={s}>{s}</option>)}</select></label><label>Buscar produção<input value={search} onChange={e => setSearch(e.target.value)} placeholder="Mesa, pedido, prato ou responsável"/></label><span>{portions} porções pendentes · {filtered.length} produções</span></div>
-    <div className="kitchen-board">{stages.map((title, stage) => <section key={title} aria-label={title} onDragOver={e=>{e.preventDefault();e.dataTransfer.dropEffect='move';setOver(stage)}} onDragLeave={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setOver(null)}} onDrop={e=>{e.preventDefault();const key=e.dataTransfer.getData('text/plain');const task=tasks.find(t=>`${t.order.id}-${t.index}`===key);if(task)changeStage(task.order,task.index,task.production,task.dish,stage);setDragged(null);setOver(null)}} className={`kitchen-lane kitchen-stage-${stage} ${over===stage?'drag-over':''}`}>
+    <div className="kitchen-stage-tabs" aria-label="Filtrar etapa"><button className={stageFilter===null?'active':''} aria-pressed={stageFilter===null} onClick={()=>setStageFilter(null)}>Todas as etapas</button>{stages.map((title,i)=><button key={title} aria-pressed={stageFilter===i} className={stageFilter===i?'active':''} onClick={()=>setStageFilter(i)}>{title}<b>{filtered.filter(t=>t.production.stage===i).length}</b></button>)}</div>
+    <div className={`kitchen-board ${stageFilter!==null?'kitchen-focused':''}`}>{stages.map((title, stage) => (stageFilter===null||stageFilter===stage)&&<section key={title} aria-label={title} onDragOver={e=>{e.preventDefault();e.dataTransfer.dropEffect='move';setOver(stage)}} onDragLeave={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setOver(null)}} onDrop={e=>{e.preventDefault();const key=e.dataTransfer.getData('text/plain');const task=tasks.find(t=>`${t.order.id}-${t.index}`===key);if(task)changeStage(task.order,task.index,task.production,task.dish,stage);setDragged(null);setOver(null)}} className={`kitchen-lane kitchen-stage-${stage} ${over===stage?'drag-over':''}`}>
       <div className="lane-title"><span className="kitchen-dot"/><b>{title}</b><span className="count">{filtered.filter(t => t.production.stage === stage).length}</span></div>
       {filtered.filter(t => t.production.stage === stage).map(({ order, item, index, dish, production }) => {
         const key = `${order.id}-${index}`;
         const done = production.activities.filter(a => a.done).length;
-        const complete = done === production.activities.length;
         const processes = getProcesses(dish, production);
-        const processesDone = processes.every(p => p.done);
         const maxMinutes = Math.max(...order.items.map(i => dishes.find(d => d.id === i.dish)!.minutes));
         const readyCount = order.items.filter(i => productionFor(i, order.status).stage === 4).length;
+        const pendingActivity = production.activities.find(a=>!a.done);
+        const pendingProcess = processes.find(p=>!p.done);
+        const nextTask = stage===0?'Separe esta produção para começar':stage===1?(pendingActivity?.label||'Ingredientes conferidos. Pode começar o preparo.'):stage===2?(pendingProcess?.label||'Preparo concluído. Faça a montagem.'):stage===3?'Confira a montagem e as observações antes de liberar':readyCount===order.items.length?'Todos os pratos deste pedido estão prontos':'Aguarde os outros pratos para servir junto';
         const update = (patch: Partial<Production>) => onUpdate(order.id, index, { ...production, ...patch });
         return <article className={`order-card production-card ${dragged===key?'dragging':''}`} key={key}>
           <div className="drag-handle" draggable onDragStart={e=>{e.dataTransfer.setData('text/plain',key);e.dataTransfer.effectAllowed='move';setDragged(key)}} onDragEnd={()=>{setDragged(null);setOver(null)}} title="Arrastar para outra etapa">⠿ Arrastar produção</div>
@@ -55,24 +57,29 @@ export default function Kitchen({ orders, dishes, now, onUpdate, onProcesses }: 
           <h3>{item.qty}× {dish.name}</h3><span className="production-station">{dish.station} · {dish.minutes} min</span>
           <div className="order-time"><Clock3 size={13}/>{Math.max(0, Math.floor((now-order.created)/60000))} min desde o pedido</div>
           {order.note && <p className="note">{order.note}</p>}
-          <p className="production-timing">Início planejado: +{maxMinutes-dish.minutes} min da entrada do pedido. Pré-preparo pode ser adiantado.</p>
-          <label className="owner-label">Responsável<input value={production.owner} placeholder="Nome da pessoa" maxLength={50} onChange={e => update({owner: e.target.value})}/></label>
-          <div className="activity-heading"><b>Pré-atividades</b><span>{done}/{production.activities.length}</span></div>
-          <div className="activities">{production.activities.map(activity => <label key={activity.id}><input type="checkbox" checked={activity.done} disabled={stage >= 2} onChange={e => update({stage: Math.max(1, stage), activities: production.activities.map(a => a.id === activity.id ? {...a, done: e.target.checked} : a)})}/><span>{activity.label}</span></label>)}</div>
-          {stage < 2 && <form className="add-activity" onSubmit={e => {e.preventDefault(); const label = drafts[key]?.trim(); if (!label) return; update({activities: [...production.activities, {id: crypto.randomUUID(), label, done:false}]}); setDrafts(d => ({...d, [key]: ''}));}}><input aria-label={`Nova atividade para ${dish.name} mesa ${order.table}`} value={drafts[key] || ''} maxLength={100} placeholder="Adicionar pré-atividade" onChange={e => setDrafts({...drafts, [key]:e.target.value})}/><button aria-label="Adicionar atividade" disabled={!drafts[key]?.trim()}><Plus size={16}/></button></form>}
+          <div className="next-task"><span>{stage===4?'SAÍDA DO PEDIDO':'AGORA, FAÇA ISTO'}</span><strong>{nextTask}</strong></div>
+          {stage===1&&<><div className="activity-heading"><b>Pré-preparo</b><span>{done}/{production.activities.length}</span></div><div className="activities">{production.activities.map(activity=><label key={activity.id}><input type="checkbox" checked={activity.done} onChange={e=>update({activities:production.activities.map(a=>a.id===activity.id?{...a,done:e.target.checked}:a)})}/><span>{activity.label}</span></label>)}</div></>}
           <div className="production-progress"><Check size={13}/>{readyCount}/{order.items.length} produções prontas do pedido</div>
-          <div className="activity-heading"><b>Processos de preparo</b><span>{processes.filter(p=>p.done).length}/{processes.length}</span></div>
-          {!dish.processes?.length && !production.processes && <p className="activity-help">Checklist genérico. Cadastre os processos específicos deste prato acima.</p>}
-          <div className="activities cooking-processes">{processes.map((process,i)=><label key={process.id}><input type="checkbox" checked={process.done} disabled={stage!==2} onChange={e=>update({processes:processes.map(p=>p.id===process.id?{...p,done:e.target.checked}:p)})}/><span><b>{i+1}.</b> {process.label}</span></label>)}</div>
-          {stage<2&&<p className="activity-help">Os processos ficam disponíveis na etapa Em produção.</p>}
-          {stage === 1 && !complete && <p className="activity-help">Conclua as pré-atividades para iniciar a produção.</p>}
-          {stage < 4 ? <button className="primary full" disabled={(stage === 1 && !complete)||(stage===2&&!processesDone)} onClick={() => changeStage(order,index,production,dish,stage+1)}>{actions[stage]}<ArrowRight size={14}/></button> : <div className="ready-message">{readyCount === order.items.length ? 'Pedido pronto para servir junto' : 'Aguardando os outros pratos'}</div>}
+          {stage===2&&<><div className="activity-heading"><b>Processos de preparo</b><span>{processes.filter(p=>p.done).length}/{processes.length}</span></div><div className="activities cooking-processes">{processes.map((process,i)=><label key={process.id}><input type="checkbox" checked={process.done} onChange={e=>update({processes:processes.map(p=>p.id===process.id?{...p,done:e.target.checked}:p)})}/><span><b>{i+1}.</b> {process.label}</span></label>)}</div></>}
+          {stage<4?<button className="primary full kitchen-main-action" aria-label={`${dish.name}, ${orderLabel(order)}: ${stage===1&&pendingActivity?`Concluir ${pendingActivity.label}`:stage===2&&pendingProcess?`Concluir ${pendingProcess.label}`:actions[stage]}`} onClick={()=>{
+            if(stage===1&&pendingActivity){update({activities:production.activities.map(a=>a.id===pendingActivity.id?{...a,done:true}:a)});setMessage(`${dish.name}: ${pendingActivity.label} concluído.`)}
+            else if(stage===2&&pendingProcess){update({processes:processes.map(p=>p.id===pendingProcess.id?{...p,done:true}:p)});setMessage(`${dish.name}: ${pendingProcess.label} concluído.`)}
+            else changeStage(order,index,production,dish,stage+1)
+          }}>{(stage===1&&pendingActivity)||(stage===2&&pendingProcess)?<><Check size={24}/>Feito! Próxima atividade</>:<>{actions[stage]}<ArrowRight size={24}/></>}</button>:<div className="ready-message"><Check size={24}/>{readyCount===order.items.length?'Pode chamar o garçom / expedição':'Aguardando os outros pratos'}</div>}
+          <details className="production-details"><summary>Detalhes e ajustes</summary>
+          <label className="owner-label">Responsável<input value={production.owner} placeholder="Nome da pessoa" maxLength={50} onChange={e => update({owner: e.target.value})}/></label>
+          <p className="production-timing">Início planejado: +{maxMinutes-dish.minutes} min da entrada do pedido.</p>
+          <p className="footnote">Sequência: {processes.map(p=>p.label).join(' → ')}</p>
+          {!dish.processes?.length&&!production.processes&&<p className="footnote">Checklist genérico. Configure os processos deste prato no fim da tela.</p>}
+          {stage < 2 && <form className="add-activity" onSubmit={e => {e.preventDefault(); const label = drafts[key]?.trim(); if (!label) return; update({activities: [...production.activities, {id: crypto.randomUUID(), label, done:false}]}); setDrafts(d => ({...d, [key]: ''}));}}><input aria-label={`Nova atividade para ${dish.name} ${orderLabel(order)}`} value={drafts[key] || ''} maxLength={100} placeholder="Adicionar pré-atividade" onChange={e => setDrafts({...drafts, [key]:e.target.value})}/><button aria-label="Adicionar atividade" disabled={!drafts[key]?.trim()}><Plus size={16}/></button></form>}
           {stage > 0 && <button className="text-button production-back" onClick={() => changeStage(order,index,production,dish,stage-1)}><RotateCcw size={12}/> Voltar etapa</button>}
           <label className="move-stage">Mover para<select value={stage} onChange={e=>changeStage(order,index,production,dish,+e.target.value)}>{stages.map((s,i)=><option key={s} value={i}>{s}</option>)}</select></label>
+          </details>
         </article>;
       })}
       {!filtered.some(t => t.production.stage === stage) && <p className="empty">Nenhuma produção nesta etapa</p>}
     </section>)}</div>
+    <details className="panel process-settings"><summary>Configurar processos de preparo por prato</summary><p>Uma etapa por linha, na ordem de execução. Novas produções usam esta sequência; produções já iniciadas preservam seus processos.</p><div className="process-editors">{dishes.map(d => <ProcessEditor key={d.id} dish={d} onSave={steps=>{onProcesses(d.id,steps);setMessage(`Processos de ${d.name} salvos.`)}}/>)}</div></details>
     {!active.length && <div className="info">Todos os pedidos foram entregues. Novos pedidos aparecerão aqui automaticamente.</div>}
   </div>;
 }
