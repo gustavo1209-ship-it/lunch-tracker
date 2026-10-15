@@ -1,5 +1,7 @@
 # Mesa — MVP de operação de restaurantes
 
+Versão para testes: https://lunch-tracker-cyan.vercel.app — cada navegador mantém seus próprios dados de demonstração.
+
 Documentação central: [CEREBRO.md](CEREBRO.md), com funcionalidades, arquitetura, limitações e roteiro de integração iFood/Delivery Much.
 
 Next.js (App Router), React, TypeScript e Node.js. Interface em português para administração, cozinha e garçons.

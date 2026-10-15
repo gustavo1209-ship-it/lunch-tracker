@@ -14,7 +14,7 @@ Aplicativo operacional de restaurantes para coordenar pedidos dos garçons e del
 
 ## 2. Estado atual
 
-MVP local funcional com Next.js App Router, React, TypeScript e ícones Lucide. O Next roda sobre Node.js. Não há API de negócio, banco remoto, autenticação, autorização por perfil ou conexão ativa aos marketplaces.
+MVP funcional com Next.js App Router, React, TypeScript e ícones Lucide, disponível localmente e na Vercel em https://lunch-tracker-cyan.vercel.app. O Next roda sobre Node.js. Não há API de negócio, banco remoto, autenticação, autorização por perfil ou conexão ativa aos marketplaces.
 
 Os dados ficam em `localStorage`, chave `mesa-demo-v1`. Abas da mesma origem/navegador recebem alterações pelo evento `storage`. Isso não equivale a sincronização entre celulares ou computadores; edições simultâneas podem se sobrescrever. Credenciais não devem ser armazenadas aqui. A demonstração inicia com dados fictícios.
 
@@ -181,7 +181,16 @@ Roteiro: criar pedido de mesa → pré-preparo → processos → pronto → entr
 
 ### Compartilhar o protótipo com um colega
 
-Ainda não foi publicado um deployment por esta tarefa. O repositório já contém tudo necessário para o deploy; nenhuma variável de ambiente é exigida pelo MVP atual.
+Publicado em 15/10/2026: **https://lunch-tracker-cyan.vercel.app**. Compartilhe este endereço com o colega. Nenhuma variável de ambiente é exigida pelo MVP atual.
+
+- Projeto Vercel: `lunch-tracker`, ID `prj_DXYGSBq4DveebcuMaX300G06lbRv`, escopo `gustavo-ponzoni-s-projects`.
+- Deployment: `dpl_4bdAVFV6HyuByFVeLSgp5QZ2Fgzv`, ambiente production, status READY.
+- Código publicado: commit `20339d659268ba2e40b0ae5a715087a2d5d1e927`; ajuste adicional de `.gitignore` para excluir `.vercel`.
+- O MCP Vercel criou o projeto, mas recusou a criação do deployment por autorização no escopo (403). Publicação concluída pela CLI oficial com credenciais próprias, no mesmo projeto e escopo. Não afirmar que o deployment foi integralmente executado pelo MCP.
+- Verificação externa: HTTP 200 sem autenticação na página inicial e em `/dishes/salada.jpg`. Não houve teste visual automatizado. O estado continua independente por navegador.
+- O vínculo local está em `.vercel/project.json`, ignorado pelo Git. Não inclui segredos. Deploys futuros podem usar `vercel deploy --prod --scope gustavo-ponzoni-s-projects` a partir desta pasta. Automação por push do GitHub não foi verificada nesta publicação.
+
+Procedimento manual de importação, caso seja necessário configurar um novo projeto:
 
 1. Entrar no [painel da Vercel](https://vercel.com/new) e importar o repositório `gustavo1209-ship-it/lunch-tracker` via GitHub.
 2. Escolher o projeto, framework Next.js, diretório raiz `./`, branch `main` e manter as configurações de build detectadas. Usar Node.js 24.x disponível no projeto, compatível com o ambiente local.
