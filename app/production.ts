@@ -1,5 +1,5 @@
 export type Activity = { id: string; label: string; done: boolean };
-export type Production = { stage: number; activities: Activity[]; owner: string; processes?: Activity[] };
+export type Production = { stage: number; columnId?: string; activities: Activity[]; owner: string; processes?: Activity[] };
 export type ProductionItem = { dish: number; qty: number; production?: Production };
 export type KitchenOrder = { id: number; table: number; items: ProductionItem[]; status: number; created: number; note: string; source?: 'ifood' | 'deliverymuch'; externalId?: string; externalCode?: string; merchantId?: string; fulfillment?: 'delivery' | 'pickup' };
 
@@ -25,7 +25,8 @@ export function updateProduction(order: KitchenOrder, index: number, production:
 
 export function advanceOrder(order: KitchenOrder, status: number): KitchenOrder {
   return { ...order, status, items: order.items.map(item => {
-    const current = productionFor(item, order.status);
+    const current = {...productionFor(item, order.status)};
+    delete current.columnId;
     return { ...item, production: { ...current, stage: status >= 2 ? 4 : Math.max(2, current.stage), activities: current.activities.map(a => ({ ...a, done: true })), ...(current.processes ? {processes: current.processes.map(p => ({...p,done:status >= 2 ? true : p.done}))} : {}) } };
   }) };
 }
