@@ -3,6 +3,7 @@
 - Canonical repository: https://github.com/gustavo1209-ship-it/lunch-tracker
 - The user requested that all project work be kept in this repository. Commit and push completed, verified changes here as part of subsequent tasks.
 - Never commit credentials, local environment files, dependencies, or build output. Preserve remote history; do not force-push.
+- Read and update `CEREBRO.md` as project functionality, architecture and limitations change. It is the user's requested central project memory.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

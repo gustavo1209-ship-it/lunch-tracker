@@ -1,5 +1,7 @@
 # Mesa — MVP de operação de restaurantes
 
+Documentação central: [CEREBRO.md](CEREBRO.md), com funcionalidades, arquitetura, limitações e roteiro de integração iFood/Delivery Much.
+
 Next.js (App Router), React, TypeScript e Node.js. Interface em português para administração, cozinha e garçons.
 
 ## Executar
@@ -20,6 +22,7 @@ Abra http://localhost:3000. Produção local: `npm run build` e `npm start`.
 5. Em Supply, informe estoque inicial, entradas e meta. Exporte a lista de compras CSV.
 6. Em Previsão, simule demanda/feriados e ajuste capacidade da equipe.
 7. Em Cozinha e pré-preparo, acompanhe cada prato por pedido em Recebidos → Pré-preparo → Em produção → Finalização → Prontos. Marque o checklist antes de iniciar a produção, adicione pré-atividades e informe o responsável. Use o filtro de estação para organizar a bancada. Voltar etapa permite corrigir marcações.
+8. Em Delivery e integrações, simule pedidos de iFood/Delivery Much, vincule SKUs aos pratos e envie à cozinha. A central também recebe JSON no contrato interno de teste. Não há conexão automática nem ações remotas nos marketplaces nesta fase.
 
 A cozinha preserva pedidos já salvos e atualiza o Kanban geral: somente todos os pratos prontos liberam o pedido. Avançar um pedido inteiro pelo Kanban geral também atualiza seus pratos. Cada cartão reúne a quantidade daquele prato no pedido; não há controle individual por porção. Testes de integração de estados: `node --experimental-strip-types --test tests/production.test.mjs`.
 

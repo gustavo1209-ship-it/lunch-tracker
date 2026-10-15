@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ChefHat, Clock3, Plus, ArrowRight, Check, RotateCcw } from 'lucide-react';
-import { productionFor, type KitchenOrder, type Production } from './production';
+import { orderLabel, productionFor, type KitchenOrder, type Production } from './production';
 
 type Dish = { id: number; name: string; minutes: number; station: string; processes?: string[] };
 const stages = ['Recebidos', 'Pré-preparo', 'Em produção', 'Finalização', 'Prontos'];
@@ -22,7 +22,7 @@ export default function Kitchen({ orders, dishes, now, onUpdate, onProcesses }: 
   const getProcesses = (dish: Dish, production: Production) => production.processes ?? (dish.processes ?? ['Executar preparo conforme a ficha técnica', 'Conferir ponto e montagem']).map((label, index) => ({id:`process-${index}`,label,done:production.stage === 4}));
   const active = orders.filter(order => order.status < 3);
   const tasks = active.flatMap(order => order.items.map((item, index) => ({ order, item, index, dish: dishes.find(d => d.id === item.dish)!, production: productionFor(item, order.status) })));
-  const filtered = tasks.filter(t => (station === 'Todas' || t.dish.station === station) && `${t.order.table} ${t.order.id} ${t.dish.name} ${t.production.owner}`.toLocaleLowerCase().includes(search.toLocaleLowerCase()));
+  const filtered = tasks.filter(t => (station === 'Todas' || t.dish.station === station) && `${orderLabel(t.order)} ${t.order.id} ${t.dish.name} ${t.production.owner}`.toLocaleLowerCase().includes(search.toLocaleLowerCase()));
   const portions = filtered.filter(t => t.production.stage < 4).reduce((sum, t) => sum + t.item.qty, 0);
   const changeStage = (order: KitchenOrder, index: number, production: Production, dish: Dish, stage: number) => {
     if (stage === production.stage) return;
@@ -30,7 +30,7 @@ export default function Kitchen({ orders, dishes, now, onUpdate, onProcesses }: 
     const processes = getProcesses(dish, production);
     if (stage >= 3 && processes.some(p => !p.done)) {setMessage('Marque os processos de preparo concluídos antes de finalizar.');return;}
     onUpdate(order.id,index,{...production,processes,stage});
-    setMessage(`${dish.name} · Mesa ${order.table}: ${stages[stage]}`);
+    setMessage(`${dish.name} · ${orderLabel(order)}: ${stages[stage]}`);
   };
   return <div className="kitchen">
     <div className="info"><ChefHat size={24}/><div><b>Antecipe o pré-preparo de cada produção</b><p>Separe ingredientes, organize a bancada e distribua responsáveis antes de iniciar o preparo. Cada cartão representa todas as porções de um prato no pedido. A mesa só fica pronta quando todos os pratos do pedido estiverem prontos.</p></div></div>
@@ -51,7 +51,7 @@ export default function Kitchen({ orders, dishes, now, onUpdate, onProcesses }: 
         const update = (patch: Partial<Production>) => onUpdate(order.id, index, { ...production, ...patch });
         return <article className={`order-card production-card ${dragged===key?'dragging':''}`} key={key}>
           <div className="drag-handle" draggable onDragStart={e=>{e.dataTransfer.setData('text/plain',key);e.dataTransfer.effectAllowed='move';setDragged(key)}} onDragEnd={()=>{setDragged(null);setOver(null)}} title="Arrastar para outra etapa">⠿ Arrastar produção</div>
-          <div className="card-top"><strong>Mesa {String(order.table).padStart(2,'0')}</strong><span>#{order.id}</span></div>
+          <div className="card-top"><strong>{orderLabel(order)}</strong><span>#{order.id}</span></div>
           <h3>{item.qty}× {dish.name}</h3><span className="production-station">{dish.station} · {dish.minutes} min</span>
           <div className="order-time"><Clock3 size={13}/>{Math.max(0, Math.floor((now-order.created)/60000))} min desde o pedido</div>
           {order.note && <p className="note">{order.note}</p>}

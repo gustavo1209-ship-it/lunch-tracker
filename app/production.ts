@@ -1,7 +1,11 @@
 export type Activity = { id: string; label: string; done: boolean };
 export type Production = { stage: number; activities: Activity[]; owner: string; processes?: Activity[] };
 export type ProductionItem = { dish: number; qty: number; production?: Production };
-export type KitchenOrder = { id: number; table: number; items: ProductionItem[]; status: number; created: number; note: string };
+export type KitchenOrder = { id: number; table: number; items: ProductionItem[]; status: number; created: number; note: string; source?: 'ifood' | 'deliverymuch'; externalId?: string; externalCode?: string; merchantId?: string; fulfillment?: 'delivery' | 'pickup' };
+
+export function orderLabel(order: KitchenOrder): string {
+  return order.source ? `${order.source === 'ifood' ? 'iFood' : 'Delivery Much'} · ${order.externalCode || order.externalId}` : `Mesa ${String(order.table).padStart(2, '0')}`;
+}
 
 export function productionFor(item: ProductionItem, status: number): Production {
   return item.production ?? {
