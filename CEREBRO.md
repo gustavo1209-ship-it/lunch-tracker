@@ -20,6 +20,8 @@ Os dados ficam em `localStorage`, chave `mesa-demo-v1`. Abas da mesma origem/nav
 
 ## 3. Interfaces entregues
 
+Menu lateral com espaçamento uniforme entre os itens, sem margem adicional entre Área do garçom e Supply diário.
+
 ### Visão geral
 
 Indicadores de pedidos, pratos, duração estimada e mesas; resumo do Kanban; alertas de compra e estimativa de capacidade da equipe.
