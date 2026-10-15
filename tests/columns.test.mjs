@@ -28,3 +28,14 @@ test('coluna intermediária não libera pedido e avanço geral remove posição 
   assert.equal(columnFor(ready.items[0].production,defaultColumns).phase,4);
   assert.equal(preparing.items[0].production.columnId,'oven');
 });
+test('permite excluir etapas originais sem perder produções legadas',()=>{
+  const columns=defaultColumns.filter(c=>c.phase===0||c.phase===4);
+  validateColumns(columns);
+  for(const stage of [1,2,3]){
+    const production={...productionFor({dish:1,qty:1},0),stage,columnId:`phase-${stage}`};
+    assert.equal(columnFor(production,columns).phase,0);
+    assert.equal(production.stage,stage);
+  }
+  assert.equal(columnFor(productionFor({dish:1,qty:1},2),columns).phase,4);
+  assert.throws(()=>validateColumns(columns.filter(c=>c.phase!==4)));
+});
