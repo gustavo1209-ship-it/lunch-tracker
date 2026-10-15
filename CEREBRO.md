@@ -76,6 +76,10 @@ Equipe estimada = teto de minutos de produção pendentes ÷ minutos disponívei
 
 Nome/logo do restaurante (PNG/JPG/WebP até 500 KB), pratos, estação, duração e consumo principal. Perfis administrador, operador e garçom são interfaces; não há barreira de autorização. Restaurar demonstração substitui os dados locais, inclusive os pedidos importados.
 
+Fotos pequenas dos pratos aparecem nos cards de pedidos, na cozinha e no lançamento pelo garçom. Em Cadastros, usar Trocar foto, Remover foto ou Usar exemplo. Upload aceita JPG/PNG/WebP de até 200 KB, valida leitura da imagem e limita o total de fotos personalizadas a 1,8 milhão de caracteres para reduzir risco de exceder localStorage. Falhas de gravação mostram aviso. Fotos enviadas ficam neste navegador; não vão ao GitHub nem para outros usuários.
+
+Os quatro pratos iniciais usam imagens ilustrativas locais em `public/dishes/`, inclusive quando já existem dados salvos sem foto. Novos pratos sem upload exibem ícone. Remover foto salva uma escolha explícita sem reativar o exemplo. Imagens fornecidas pelo Unsplash, reduzidas para 240×240 na origem, não representam necessariamente as receitas do restaurante. Referências em `public/dishes/FONTES.md`. Componente: `app/dish-photo.tsx`.
+
 ## 4. Central de delivery: o que funciona hoje
 
 Aba **Delivery e integrações** com cartões iFood e Delivery Much sempre identificados como **Não conectado**.
@@ -174,6 +178,22 @@ Usar Node.js compatível com Next; ambiente de desenvolvimento atual: Node 24.15
 Roteiro: criar pedido de mesa → pré-preparo → processos → pronto → entregue; simular cada plataforma → vincular itens → importar → verificar identificação na cozinha/Gantt → concluir pratos; repetir o mesmo JSON e confirmar o bloqueio de duplicata; recarregar e verificar persistência.
 
 ## 8. Próximas prioridades
+
+### Compartilhar o protótipo com um colega
+
+Ainda não foi publicado um deployment por esta tarefa. O repositório já contém tudo necessário para o deploy; nenhuma variável de ambiente é exigida pelo MVP atual.
+
+1. Entrar no [painel da Vercel](https://vercel.com/new) e importar o repositório `gustavo1209-ship-it/lunch-tracker` via GitHub.
+2. Escolher o projeto, framework Next.js, diretório raiz `./`, branch `main` e manter as configurações de build detectadas. Usar Node.js 24.x disponível no projeto, compatível com o ambiente local.
+3. Clicar em Deploy, aguardar Ready e abrir a URL gerada pela Vercel. Enviar essa URL ao colega; `localhost:3000` não é um endereço compartilhável pela internet.
+4. Se a URL estiver protegida, usar as opções de compartilhamento/acesso do deployment em vez de supor que qualquer pessoa conseguirá abrir.
+5. Pedir ao colega testar cadastro/foto, lançamento de pedido, pré-preparo, processos, arraste, personalização de colunas e importação simulada de delivery.
+
+Cada navegador inicia com os dados de exemplo e mantém uma cópia independente. Não há conta de usuário nem operação compartilhada em tempo real; restaurar a demonstração apaga apenas os dados desse navegador. Fotos personalizadas locais não são publicadas com o código. A sincronização entre você e o colega exige backend/banco na próxima fase. Usar este link para avaliação do protótipo.
+
+Referências oficiais: [importação de repositórios](https://vercel.com/docs/git), [deployments e URLs](https://vercel.com/docs/deployments). Com o Git conectado, alterações enviadas ao repositório podem disparar novos deployments conforme a branch configurada.
+
+### Evolução do produto
 
 - Validar a experiência operacional com restaurante real e simplificar o que a equipe não usar.
 - Separar componentes e estado central, introduzir persistência transacional e auditoria.

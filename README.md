@@ -16,6 +16,7 @@ Abra http://localhost:3000. Produção local: `npm run build` e `npm start`.
 ## Fluxo de teste
 
 1. Em Cadastros, personalize nome/logo e tempos/consumo dos pratos.
+   Também é possível trocar ou remover a miniatura de cada prato (JPG/PNG/WebP, até 200 KB). Os pratos iniciais incluem fotos ilustrativas.
 2. Na Área do garçom, escolha uma mesa e envie vários pratos no mesmo pedido.
 3. No Kanban, avance fila → preparo → pronto → entregue usando a seta.
 4. No Gantt, veja início escalonado pelo prato mais demorado e horário de saída conjunta.

@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import {DishPhoto} from './dish-photo';
 import ColumnEditor from './column-editor';
 import {columnFor,type KanbanColumn} from './kanban-columns';
 import { ChefHat, Clock3, Plus, ArrowRight, Check, RotateCcw } from 'lucide-react';
 import { orderLabel, productionFor, type KitchenOrder, type Production } from './production';
 
-type Dish = { id: number; name: string; minutes: number; station: string; processes?: string[] };
+type Dish = { photo?:string; id: number; name: string; minutes: number; station: string; processes?: string[] };
 
 export default function Kitchen({ orders, dishes, now, onUpdate, onProcesses, columns, onColumns }: {
   columns:KanbanColumn[]; onColumns:(columns:KanbanColumn[])=>void;
@@ -63,7 +64,7 @@ export default function Kitchen({ orders, dishes, now, onUpdate, onProcesses, co
         return <article className={`order-card production-card ${dragged===key?'dragging':''}`} key={key}>
           <div className="drag-handle" draggable onDragStart={e=>{e.dataTransfer.setData('text/plain',key);e.dataTransfer.effectAllowed='move';setDragged(key)}} onDragEnd={()=>{setDragged(null);setOver(null)}} title="Arrastar para outra etapa">⠿ Arrastar produção</div>
           <div className="card-top"><strong>{orderLabel(order)}</strong><span>#{order.id}</span></div>
-          <h3>{item.qty}× {dish.name}</h3><span className="production-station">{dish.station} · {dish.minutes} min</span>
+          <div className="production-dish-heading"><DishPhoto dish={dish}/><h3>{item.qty}× {dish.name}</h3></div><span className="production-station">{dish.station} · {dish.minutes} min</span>
           <div className="order-time"><Clock3 size={13}/>{Math.max(0, Math.floor((now-order.created)/60000))} min desde o pedido</div>
           {order.note && <p className="note">{order.note}</p>}
           <div className="next-task"><span>{stage===4?'SAÍDA DO PEDIDO':'AGORA, FAÇA ISTO'}</span><strong>{nextTask}</strong></div>
